@@ -3,6 +3,7 @@ package de.db.waggons_platform_case_study.service;
 import de.db.waggons_platform_case_study.dto.PlatformPositionResponse;
 import de.db.waggons_platform_case_study.exceptions.WagonNotFoundException;
 import de.db.waggons_platform_case_study.model.*;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,7 @@ public class TrainService {
         return (Station) jaxbUnmarshaller.unmarshal(xmlFile);
     }
 
+    @Cacheable(value ="trainData", keyGenerator="customKeyGenerator")
     public PlatformPositionResponse getPlatformPosition(String ril100, Integer trainNumber, Integer wagonNumber) throws Exception {
         Station station = getTrainData(ril100 + "_2017-12-01_10-47-17.xml");
 

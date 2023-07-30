@@ -1,12 +1,11 @@
 package de.db.waggons_platform_case_study.controller;
 
 import de.db.waggons_platform_case_study.dto.PlatformPositionResponse;
+import de.db.waggons_platform_case_study.exceptions.WagonNotFoundException;
 import de.db.waggons_platform_case_study.service.TrainService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
@@ -29,6 +28,14 @@ public class PlatformPositionController {
         PlatformPositionResponse response = trainService.getPlatformPosition(ril100, trainNumber, wagonNumber);
 
         return ResponseEntity.ok(response);
+    }
+    @ExceptionHandler(WagonNotFoundException.class)
+    public ResponseEntity<String> handleWagonNotFoundException(WagonNotFoundException ex) {
+
+        // Die untenstehende Nachricht kann entsprechend bearbeitet werden.
+        return new ResponseEntity<>("Fehler: " + ex.getMessage()
+                +"\n\nLösung: Geben Sie eine andere Wegennummer ein, die in der Liste existiert (z.B. die Nummer 10)."
+                , HttpStatus.NOT_FOUND);
     }
 
 }

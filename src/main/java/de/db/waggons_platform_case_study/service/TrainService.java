@@ -34,6 +34,9 @@ public class TrainService {
      * @throws IOException if an error occurs while reading the file
      */
     public Station getTrainData(String xmlFileName) throws JAXBException, IOException {
+
+        if (xmlFileName == null) throw new IllegalArgumentException("xmlFileName cannot be null");
+
         LOGGER.info("Getting train data from {}", xmlFileName);
 
         JAXBContext jaxbContext = JAXBContext.newInstance(Station.class);
@@ -58,6 +61,10 @@ public class TrainService {
     @Cacheable(value ="trainData", keyGenerator="customKeyGenerator")
     public PlatformPositionResponse getPlatformPosition(String ril100, Integer trainNumber,
                                                         Integer wagonNumber) throws Exception {
+
+        if (ril100 == null || trainNumber == null || wagonNumber == null)
+            throw new IllegalArgumentException("Arguments cannot be null");
+
         LOGGER.info("Getting platform position for station: {}, train: {}, wagon: {}", ril100, trainNumber, wagonNumber);
 
         Station station = getTrainData(ril100 + "_2017-12-01_10-47-17.xml");

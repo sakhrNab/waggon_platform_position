@@ -12,11 +12,30 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * Service for handling train-related operations.
+ *
+ * @author SakhrNabil
+ */
 @Service
 public class TrainService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(TrainService.class);
+
+    /**
+     * Retrieves train data from an XML file.
+     *
+     * @param xmlFileName the name of the XML file to read from
+     * @return a Station object representing the train station data in the XML file
+     * @throws JAXBException if an error occurs while unmarshalling the XML
+     * @throws IOException if an error occurs while reading the file
+     */
     public Station getTrainData(String xmlFileName) throws JAXBException, IOException {
+        LOGGER.info("Getting train data from {}", xmlFileName);
+
         JAXBContext jaxbContext = JAXBContext.newInstance(Station.class);
 
         Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
@@ -27,8 +46,20 @@ public class TrainService {
         return (Station) jaxbUnmarshaller.unmarshal(xmlFile);
     }
 
+    /**
+     * Retrieves the platform position for a specific wagon of a train.
+     *
+     * @param ril100 the shortcode of the station
+     * @param trainNumber the number of the train
+     * @param wagonNumber the number of the wagon
+     * @return a PlatformPositionResponse object representing the platform position of the wagon
+     * @throws Exception if an error occurs while retrieving the data
+     */
     @Cacheable(value ="trainData", keyGenerator="customKeyGenerator")
-    public PlatformPositionResponse getPlatformPosition(String ril100, Integer trainNumber, Integer wagonNumber) throws Exception {
+    public PlatformPositionResponse getPlatformPosition(String ril100, Integer trainNumber,
+                                                        Integer wagonNumber) throws Exception {
+        LOGGER.info("Getting platform position for station: {}, train: {}, wagon: {}", ril100, trainNumber, wagonNumber);
+
         Station station = getTrainData(ril100 + "_2017-12-01_10-47-17.xml");
 
         // Der Zug ueber die Zugnummer finden

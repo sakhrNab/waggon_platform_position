@@ -25,6 +25,7 @@ public class TrainService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TrainService.class);
 
+
     /**
      * Retrieves train data from an XML file.
      *
@@ -34,18 +35,14 @@ public class TrainService {
      * @throws IOException if an error occurs while reading the file
      */
     public Station getTrainData(String xmlFileName) throws JAXBException, IOException {
-
         if (xmlFileName == null) throw new IllegalArgumentException("xmlFileName cannot be null");
 
         LOGGER.info("Getting train data from {}", xmlFileName);
 
         JAXBContext jaxbContext = JAXBContext.newInstance(Station.class);
-
         Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-
         // Die FF-XML-Datei aus der folgenden Pfad xml file from src/main/resources/xml erhalten.
         File xmlFile = new ClassPathResource("xml/" + xmlFileName).getFile();
-
         return (Station) jaxbUnmarshaller.unmarshal(xmlFile);
     }
 
@@ -68,24 +65,33 @@ public class TrainService {
         LOGGER.info("Getting platform position for station: {}, train: {}, wagon: {}", ril100, trainNumber, wagonNumber);
 
         Station station = getTrainData(ril100 + "_2017-12-01_10-47-17.xml");
-
-        // Der Zug ueber die Zugnummer finden
-        Train matchingTrain = station.getTracks().stream()
-                .flatMap(track -> track.getTrains().stream())
-                .filter(train -> train.getTrainNumbers().contains(trainNumber))
-                .findFirst()
-                .orElseThrow(() -> new Exception("Train not found"));
-
-        // Der Wagen ueber die Wagennummer finden
-        Waggon matchingWaggon = matchingTrain.getWaggons().stream()
-                .filter(waggon -> waggon.getNumber() == wagonNumber)
-                .findFirst()
-                .orElseThrow(() -> new WagonNotFoundException("Wagen wurde nicht gefunden"));
+        Train matchingTrain = matchCorrectTrain(ril100, trainNumber);
+        Waggon matchingWaggon = matchCorrectWaggon(matchingTrain, wagonNumber);
 
         // Die Antwort erstellen
         PlatformPositionResponse response = new PlatformPositionResponse();
         response.setSections(matchingWaggon.getIdentifiers());
 
         return response;
+    }
+
+    private Train matchCorrectTrain(String ril100, Integer trainNumber) throws Exception {
+        Station station = getTrainData(ril100 + "_2017-12-01_10-47-17.xml");
+
+        Train matchingTrain = station.getTracks().stream()
+                .flatMap(track -> track.getTrains().stream())
+                .filter(train -> train.getTrainNumbers().contains(trainNumber))
+                .findFirst()
+                .orElseThrow(() -> new Exception("Train not found"));
+        return matchingTrain;
+    }
+
+    private Waggon matchCorrectWaggon(Train matchingTrain, Integer wagonNumber) {
+
+        Waggon matchingWaggon = matchingTrain.getWaggons().stream()
+                .filter(waggon -> waggon.getNumber() == wagonNumber)
+                .findFirst()
+                .orElseThrow(() -> new WagonNotFoundException("Wagen wurde nicht gefunden"));
+        return matchingWaggon;
     }
 }
